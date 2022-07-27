@@ -41,8 +41,15 @@ void main() {
 
     test('Get field as YamlCfg', () {
       expect(
-        YamlCfg.fromString('test:\n  val: 1').config('test'),
-        YamlCfg.fromString('val: 1'),
+        YamlCfg.fromString('test:\n  val: 1').config('test').yamlMap,
+        YamlMap.wrap({'val': 1}),
+      );
+    });
+
+    test('Get inner field as int', () {
+      expect(
+        YamlCfg.fromString('test:\n  val: 1').config('test').field<int>('val'),
+        1,
       );
     });
 

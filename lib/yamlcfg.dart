@@ -1,11 +1,9 @@
-import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 /// A type-safe configuration file parser with support for YAML notation.
-@immutable
 class YamlCfg {
   /// Creates a new [YamlCfg] given a [yamlMap].
-  const YamlCfg(this._yamlMap);
+  const YamlCfg(this.yamlMap);
 
   /// Creates a new [YamlCfg] given some [content] data.
   factory YamlCfg.fromString(String content) {
@@ -30,21 +28,11 @@ class YamlCfg {
     return YamlCfg(_yamlMap);
   }
 
-  final YamlMap _yamlMap;
-
   /// The [YamlMap] to wrap and parse.
-  YamlMap get yamlMap => _yamlMap;
+  final YamlMap yamlMap;
 
   @override
   String toString() => yamlMap.toString();
-
-  @override
-  bool operator ==(Object other) {
-    return other is YamlCfg && yamlMap == other.yamlMap;
-  }
-
-  @override
-  int get hashCode => yamlMap.hashCode;
 
   /// Retrieve a field of type [T] given a [name].
   T field<T>(String name) {
