@@ -39,6 +39,13 @@ void main() {
       );
     });
 
+    test('Get field as YamlCfg', () {
+      expect(
+        YamlCfg.fromString('test:\n  val: 1').config('test'),
+        YamlCfg.fromString('val: 1'),
+      );
+    });
+
     test('Get field with wrong type', () {
       expect(
         () => YamlCfg.fromString('test: 5').field<String>('test'),
