@@ -2,28 +2,38 @@ import 'package:yaml/yaml.dart';
 
 /// A type-safe configuration file parser with support for YAML notation.
 class YamlCfg {
+  /// Creates a new [YamlCfg] given a [yamlMap].
+  YamlCfg(this.yamlMap);
+
   /// Creates a new [YamlCfg] given some [content] data.
-  YamlCfg(this.content) {
-    final _unsafeYamlMap = loadYaml(content) as YamlMap?;
-    if (_unsafeYamlMap == null) {
+  factory YamlCfg.fromString(String content) {
+    final _yamlMap = loadYaml(content);
+
+    // Reject bad content.
+    if (_yamlMap is! YamlMap?) {
       throw ArgumentError(
-        'No content given',
+        'Invalid content',
         'content',
       );
     }
 
-    _yamlMap = _unsafeYamlMap;
+    // Reject null maps.
+    if (_yamlMap == null) {
+      throw ArgumentError(
+        'Map must not be null',
+        'content',
+      );
+    }
+
+    return YamlCfg(_yamlMap);
   }
 
-  /// A string representation of the YAML file's content.
-  final String content;
-
-  /// A [YamlMap] generated from the [content].
-  late final YamlMap _yamlMap;
+  /// The [YamlMap] to wrap and parse.
+  final YamlMap yamlMap;
 
   /// Retrieve a field of type [T] given a [name].
-  T get<T>(String name) {
-    final fieldValue = _yamlMap[name];
+  T field<T>(String name) {
+    final fieldValue = yamlMap[name];
 
     // Reject missing fields.
     if (fieldValue == null) {
@@ -39,5 +49,12 @@ class YamlCfg {
     }
 
     return fieldValue;
+  }
+
+  /// Retrieve a field of type [YamlMap] given a [name] and safely wrap it with
+  /// a [YamlCfg] for further parsing.
+  YamlCfg config(String name) {
+    final fieldValue = field<YamlMap>(name);
+    return YamlCfg(fieldValue);
   }
 }
