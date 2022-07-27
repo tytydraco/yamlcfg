@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:yaml/yaml.dart';
 
 /// A type-safe configuration file parser with support for YAML notation.
@@ -11,10 +13,10 @@ class YamlCfg {
   ///   * [content] does not parse to a [YamlMap]
   ///   * [content] parses to null
   factory YamlCfg.fromString(String content) {
-    final _yamlMap = loadYaml(content);
+    final yamlMap = loadYaml(content);
 
     // Reject bad content.
-    if (_yamlMap is! YamlMap?) {
+    if (yamlMap is! YamlMap?) {
       throw ArgumentError(
         'Invalid content',
         'content',
@@ -22,14 +24,27 @@ class YamlCfg {
     }
 
     // Reject null maps.
-    if (_yamlMap == null) {
+    if (yamlMap == null) {
       throw ArgumentError(
         'Map must not be null',
         'content',
       );
     }
 
-    return YamlCfg(_yamlMap);
+    return YamlCfg(yamlMap);
+  }
+
+  /// Creates a new [YamlCfg] given some input [file]. This constructor blocks
+  /// until the file contents are read. Calls [YamlCfg.fromString] constructor
+  /// internally.
+  ///
+  /// Throws an [ArgumentError] if the [file] is missing.
+  factory YamlCfg.fromFile(File file) {
+    // Reject missing files.
+    if (!file.existsSync()) throw ArgumentError('File not found', file.path);
+
+    final fileString = file.readAsStringSync();
+    return YamlCfg.fromString(fileString);
   }
 
   /// The [YamlMap] to wrap and parse.
@@ -73,8 +88,7 @@ class YamlCfg {
   /// If [T] is [YamlCfg], then safely wrap the retrieved map as a new [YamlCfg]
   /// for further processing.
   ///
-  /// Throws an [ArgumentError] if:
-  ///   * Field value is not of type [T]
+  /// Throws an [ArgumentError] if the field value is not of type [T].
   T? ask<T>(String name, [T? altValue]) {
     // If key is missing, return alternative value.
     if (!yamlMap.containsKey(name)) return altValue;

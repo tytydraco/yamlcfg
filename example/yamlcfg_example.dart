@@ -5,8 +5,7 @@ import 'dart:io';
 import 'package:yamlcfg/yamlcfg.dart';
 
 void main() {
-  final pubspecYamlText = File('pubspec.yaml').readAsStringSync();
-  final root = YamlCfg.fromString(pubspecYamlText);
+  final root = YamlCfg.fromFile(File('pubspec.yaml'));
 
   // Get our project name.
   final name = root.get<String>('name');

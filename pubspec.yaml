@@ -10,5 +10,14 @@ dependencies:
   yaml: ^3.1.1
 
 dev_dependencies:
+  basil: ^1.0.13
   test: ^1.16.0
   very_good_analysis: ^3.0.1
+
+basil:
+  formatting:
+    cmds: [ 'dart format -o none --set-exit-if-changed .' ]
+  analysis:
+    cmds: [ 'dart analyze --fatal-infos' ]
+  tests:
+    cmds: [ 'dart test' ]

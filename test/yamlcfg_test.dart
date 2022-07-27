@@ -1,9 +1,11 @@
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yamlcfg/yamlcfg.dart';
 
 void main() {
-  group('YamlCfg', () {
+  group('Invalid configs', () {
     test('Empty YAML string', () {
       expect(
         () => YamlCfg.fromString(''),
@@ -11,6 +13,36 @@ void main() {
       );
     });
 
+    test('Non-yaml string', () {
+      expect(
+        () => YamlCfg.fromString('bad'),
+        throwsArgumentError,
+      );
+    });
+
+    test('Missing file', () {
+      expect(
+        () => YamlCfg.fromFile(File('does-not-exist-ever')),
+        throwsArgumentError,
+      );
+    });
+
+    test('Missing field as int (get)', () {
+      expect(
+        () => YamlCfg.fromString('val: 1').get<int>('nothing'),
+        throwsArgumentError,
+      );
+    });
+
+    test('Get field with wrong type', () {
+      expect(
+        () => YamlCfg.fromString('val: 1').get<String>('test'),
+        throwsArgumentError,
+      );
+    });
+  });
+
+  group('Valid configs', () {
     test('Empty YAML map', () {
       expect(
         () => YamlCfg(YamlMap()),
@@ -18,44 +50,30 @@ void main() {
       );
     });
 
-    test('Non-yaml string', () {
-      expect(
-        () => YamlCfg.fromString('12345'),
-        throwsArgumentError,
-      );
-    });
-
-    test('Missing field as int (get)', () {
-      expect(
-        () => YamlCfg.fromString('test: 5').get<int>('nothing'),
-        throwsArgumentError,
-      );
-    });
-
     test('Missing field as int (ask)', () {
       expect(
-        YamlCfg.fromString('test: 5').ask<int>('nothing'),
+        YamlCfg.fromString('val: 1').ask<int>('nothing'),
         isNull,
       );
     });
 
     test('Missing field as int (ask) with specified alt', () {
       expect(
-        YamlCfg.fromString('test: 5').ask<int>('nothing', -1),
+        YamlCfg.fromString('val: 1').ask<int>('missing', -1),
         -1,
       );
     });
 
     test('Get field as int', () {
       expect(
-        YamlCfg.fromString('test: 5').get<int>('test'),
-        5,
+        YamlCfg.fromString('val: 1').get<int>('val'),
+        1,
       );
     });
 
     test('Get null field as int?', () {
       expect(
-        YamlCfg.fromString('test: ~').get<int?>('test'),
+        YamlCfg.fromString('val: null').get<int?>('val'),
         isNull,
       );
     });
@@ -83,11 +101,18 @@ void main() {
       );
     });
 
-    test('Get field with wrong type', () {
+    test('Get field from file as int', () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      final tempFile = File('${tempDir.path}/temp')
+        ..createSync()
+        ..writeAsStringSync('val: 1');
+
       expect(
-        () => YamlCfg.fromString('test: 5').get<String>('test'),
-        throwsArgumentError,
+        YamlCfg.fromFile(tempFile).get<int>('val'),
+        1,
       );
+
+      tempDir.deleteSync(recursive: true);
     });
   });
 }
