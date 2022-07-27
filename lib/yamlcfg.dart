@@ -18,24 +18,21 @@ class YamlCfg {
     // Reject bad content.
     if (yamlMap is! YamlMap?) {
       throw ArgumentError(
-        'Invalid content',
+        'Content contains invalid YAML',
         'content',
       );
     }
 
     // Reject null maps.
     if (yamlMap == null) {
-      throw ArgumentError(
-        'Map must not be null',
-        'content',
-      );
+      throw ArgumentError('Map must not be null', 'content');
     }
 
     return YamlCfg(yamlMap);
   }
 
   /// Creates a new [YamlCfg] given some input [file]. This constructor blocks
-  /// until the file contents are read. Calls [YamlCfg.fromString] constructor
+  /// until the [file] contents are read. Calls [YamlCfg.fromString] constructor
   /// internally.
   ///
   /// Throws an [ArgumentError] if the [file] is missing.
@@ -54,19 +51,26 @@ class YamlCfg {
   @override
   String toString() => yamlMap.toString();
 
-  /// Retrieve an existing field of type [T] given a [name].
+  /// Retrieve a field of type [T] given a [name]. If it is missing, use the
+  /// result of the [onFallback] handler instead.
   ///
-  /// If [T] is [YamlCfg], then safely wrap the retrieved map as a new [YamlCfg]
-  /// for further processing.
+  /// If [T] is a [YamlCfg], then safely wrap the retrieved map as a new
+  /// [YamlCfg] for further processing.
   ///
   /// Throws an [ArgumentError] if:
-  ///   * Field is not a key in [yamlMap]
+  ///   * Field is not a key in [yamlMap] and [onFallback] is null
   ///   * Field value is not of type [T]
-  T get<T>(String name) {
-    // Reject missing fields.
-    if (!yamlMap.containsKey(name)) throw ArgumentError('No field found', name);
+  T get<T>(String name, [T Function()? onFallback]) {
+    var fieldValue = yamlMap[name];
 
-    final fieldValue = yamlMap[name];
+    // Reject missing fields unless a handler was specified.
+    if (!yamlMap.containsKey(name)) {
+      if (onFallback != null) {
+        fieldValue = onFallback();
+      } else {
+        throw ArgumentError('Missing field without fallback handler', name);
+      }
+    }
 
     // Consider wrapping as new config object.
     if (T == YamlCfg) return YamlCfg(fieldValue as YamlMap) as T;
@@ -74,7 +78,7 @@ class YamlCfg {
     // Reject mismatching field types.
     if (fieldValue is! T) {
       throw ArgumentError(
-        'Field type mismatch; $T != ${fieldValue.runtimeType}',
+        'Field type mismatch: $T != ${fieldValue.runtimeType}',
         name,
       );
     }
@@ -82,30 +86,10 @@ class YamlCfg {
     return fieldValue;
   }
 
-  /// Retrieve a field of type [T] given a [name]. If it is missing, return
-  /// an [altValue], which is null by default.
+  /// Wrap a [YamlMap] field with a [YamlCfg] given a [name]. If it is missing,
+  /// use the result of the [onFallback] handler instead.
   ///
-  /// If [T] is [YamlCfg], then safely wrap the retrieved map as a new [YamlCfg]
-  /// for further processing.
-  ///
-  /// Throws an [ArgumentError] if the field value is not of type [T].
-  T? ask<T>(String name, [T? altValue]) {
-    // If key is missing, return alternative value.
-    if (!yamlMap.containsKey(name)) return altValue;
-
-    final fieldValue = yamlMap[name];
-
-    // Consider wrapping as new config object.
-    if (T == YamlCfg) return YamlCfg(fieldValue as YamlMap) as T;
-
-    // Reject mismatching field types.
-    if (fieldValue is! T) {
-      throw ArgumentError(
-        'Field type mismatch; $T != ${fieldValue.runtimeType}',
-        name,
-      );
-    }
-
-    return fieldValue;
-  }
+  /// Wrapper around [YamlCfg.get] with the assumed type of [YamlCfg].
+  YamlCfg into(String name, [YamlCfg Function()? onFallback]) =>
+      get<YamlCfg>(name, onFallback);
 }

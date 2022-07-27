@@ -21,3 +21,5 @@ basil:
     cmds: [ 'dart analyze --fatal-infos' ]
   tests:
     cmds: [ 'dart test' ]
+  example:
+    cmds: [ 'bash -c "dart run example/yamlcfg_example.dart"' ]

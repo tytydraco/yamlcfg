@@ -27,7 +27,7 @@ void main() {
       );
     });
 
-    test('Missing field as int (get)', () {
+    test('Missing field as int', () {
       expect(
         () => YamlCfg.fromString('val: 1').get<int>('nothing'),
         throwsArgumentError,
@@ -37,6 +37,13 @@ void main() {
     test('Get field with wrong type', () {
       expect(
         () => YamlCfg.fromString('val: 1').get<String>('test'),
+        throwsArgumentError,
+      );
+    });
+
+    test('Missing field via into', () {
+      expect(
+        () => YamlCfg.fromString('val: 1').into('nothing'),
         throwsArgumentError,
       );
     });
@@ -50,16 +57,16 @@ void main() {
       );
     });
 
-    test('Missing field as int (ask)', () {
+    test('Missing field as int with handler', () {
       expect(
-        YamlCfg.fromString('val: 1').ask<int>('nothing'),
+        YamlCfg.fromString('val: 1').get<int?>('nothing', () => null),
         isNull,
       );
     });
 
-    test('Missing field as int (ask) with specified alt', () {
+    test('Missing field as int with handler', () {
       expect(
-        YamlCfg.fromString('val: 1').ask<int>('missing', -1),
+        YamlCfg.fromString('val: 1').get<int>('missing', () => -1),
         -1,
       );
     });
@@ -92,10 +99,27 @@ void main() {
       );
     });
 
+    test('Into field as YamlCfg', () {
+      expect(
+        YamlCfg.fromString('test:\n  val: 1').into('test').yamlMap,
+        YamlMap.wrap({'val': 1}),
+      );
+    });
+
     test('Get inner field as int', () {
       expect(
+        YamlCfg.fromString('test:\n  val: 1').into('test').get<int>('val'),
+        1,
+      );
+    });
+
+    test('Get inner field as int with missing outer field with fallback', () {
+      expect(
         YamlCfg.fromString('test:\n  val: 1')
-            .get<YamlCfg>('test')
+            .into(
+              'test',
+              () => YamlCfg.fromString('val: 1'),
+            )
             .get<int>('val'),
         1,
       );
