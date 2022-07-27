@@ -6,6 +6,10 @@ class YamlCfg {
   const YamlCfg(this.yamlMap);
 
   /// Creates a new [YamlCfg] given some [content] data.
+  ///
+  /// Throws an [ArgumentError] if:
+  ///   * [content] does not parse to a [YamlMap]
+  ///   * [content] parses to null
   factory YamlCfg.fromString(String content) {
     final _yamlMap = loadYaml(content);
 
@@ -31,17 +35,26 @@ class YamlCfg {
   /// The [YamlMap] to wrap and parse.
   final YamlMap yamlMap;
 
+  /// Returns the [String] representation of the internal [yamlMap].
   @override
   String toString() => yamlMap.toString();
 
-  /// Retrieve a field of type [T] given a [name].
-  T field<T>(String name) {
+  /// Retrieve an existing field of type [T] given a [name].
+  ///
+  /// If [T] is [YamlCfg], then safely wrap the retrieved map as a new [YamlCfg]
+  /// for further processing.
+  ///
+  /// Throws an [ArgumentError] if:
+  ///   * Field is not a key in [yamlMap]
+  ///   * Field value is not of type [T]
+  T get<T>(String name) {
+    // Reject missing fields.
+    if (!yamlMap.containsKey(name)) throw ArgumentError('No field found', name);
+
     final fieldValue = yamlMap[name];
 
-    // Reject missing fields.
-    if (fieldValue == null) {
-      throw ArgumentError('No field found', name);
-    }
+    // Consider wrapping as new config object.
+    if (T == YamlCfg) return YamlCfg(fieldValue as YamlMap) as T;
 
     // Reject mismatching field types.
     if (fieldValue is! T) {
@@ -54,10 +67,31 @@ class YamlCfg {
     return fieldValue;
   }
 
-  /// Retrieve a field of type [YamlMap] given a [name] and safely wrap it with
-  /// a [YamlCfg] for further parsing.
-  YamlCfg config(String name) {
-    final fieldValue = field<YamlMap>(name);
-    return YamlCfg(fieldValue);
+  /// Retrieve a field of type [T] given a [name]. If it is missing, return
+  /// an [altValue], which is null by default.
+  ///
+  /// If [T] is [YamlCfg], then safely wrap the retrieved map as a new [YamlCfg]
+  /// for further processing.
+  ///
+  /// Throws an [ArgumentError] if:
+  ///   * Field value is not of type [T]
+  T? ask<T>(String name, [T? altValue]) {
+    // If key is missing, return alternative value.
+    if (!yamlMap.containsKey(name)) return altValue;
+
+    final fieldValue = yamlMap[name];
+
+    // Consider wrapping as new config object.
+    if (T == YamlCfg) return YamlCfg(fieldValue as YamlMap) as T;
+
+    // Reject mismatching field types.
+    if (fieldValue is! T) {
+      throw ArgumentError(
+        'Field type mismatch; $T != ${fieldValue.runtimeType}',
+        name,
+      );
+    }
+
+    return fieldValue;
   }
 }
