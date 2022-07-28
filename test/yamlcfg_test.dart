@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yamlcfg/exceptions/missing_field_exception.dart';
+import 'package:yamlcfg/exceptions/type_mismatch_exception.dart';
 import 'package:yamlcfg/yamlcfg.dart';
 
 void main() {
@@ -37,8 +38,8 @@ void main() {
 
     test('Get field with wrong type', () {
       expect(
-        () => YamlCfg.fromString('val: 1').get<String>('test'),
-        throwsA(isA<MissingFieldException>()),
+        () => YamlCfg.fromString('val: 1').get<String>('val'),
+        throwsA(isA<TypeMismatchException>()),
       );
     });
 
@@ -46,6 +47,13 @@ void main() {
       expect(
         () => YamlCfg.fromString('val: 1').into('nothing'),
         throwsA(isA<MissingFieldException>()),
+      );
+    });
+
+    test('Into an invalid field', () {
+      expect(
+        () => YamlCfg.fromString('val: 1').into('val'),
+        throwsA(isA<TypeMismatchException>()),
       );
     });
   });

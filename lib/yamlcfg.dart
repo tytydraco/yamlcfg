@@ -59,7 +59,7 @@ class YamlCfg {
   /// Throws a [MissingFieldException] if field is not a key in [yamlMap] and
   /// [onFallback] is null.
   ///
-  /// Throws an [TypeMismatchException] if field value is not of type [T]
+  /// Throws an [TypeMismatchException] if field value is not of type [T].
   T get<T>(String name, [T Function()? onFallback]) {
     var fieldValue = yamlMap[name];
 
@@ -75,8 +75,10 @@ class YamlCfg {
       }
     }
 
-    // Consider wrapping as new config object.
-    if (T == YamlCfg) return YamlCfg(fieldValue as YamlMap) as T;
+    // Consider wrapping as new config object if field value is a YamlMap.
+    if (T == YamlCfg && fieldValue is YamlMap) {
+      return YamlCfg(fieldValue) as T;
+    }
 
     // Reject mismatching field types.
     if (fieldValue is! T) {

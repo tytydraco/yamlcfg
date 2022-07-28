@@ -1,39 +1,52 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# yamlcfg
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages). 
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages). 
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+A type-safe configuration file parser with support for YAML notation.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+* Lightweight and fast
+* Type-safe
+* Fallback handlers
+* Readable and few exceptions
+* Versatile input formats
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Add `yamlcfg` to your project with the command `dart pub add yamlcfg`.
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+To use `yamlcfg`, simply create a new `YamlCfg`. The constructor takes a `YamlMap`, but a file can be provided via
+the `YamlCfg.fromFile` factory, or a string can be provided via the `YamlCfg.fromString` factory.
+
+From there, the usage is quite simple. To retrieve the value of a field, use the `get` method, providing a type to check
+against. For example:
 
 ```dart
-const like = 'sample';
+
+final yamlCfg = YamlCfg.fromFile('pubspec.yaml');
+final name = yamlCfg.get<String>('name');
 ```
 
-## Additional information
+If the specified field does not exist, a `MissingFieldException` is thrown. If the field **does** exist,
+but the field is not of the specified type, a `TypeMismatchException` is thrown. An `onFallback` handler can be given
+to return a fallback value and avoid a `MissingFieldException`. For example:
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+```dart
+
+final yamlCfg = YamlCfg.fromFile('pubspec.yaml');
+final name = yamlCfg.get<String>('does-not-exist', () => 'backup-name');
+```
+
+To dig deeper in the YAML tree, use `get` but specify the type as `YamlCfg`. Alternatively, use the wrapper
+method `into` to accomplish the same thing. For example:
+
+```dart
+
+final yamlCfg = YamlCfg.fromFile('pubspec.yaml');
+final testViaGet = yamlCfg.get<YamlCfg>('dev_dependencies').get<String>('test');
+
+// or...
+
+final testViaInto = yamlCfg.into('dev_dependencies').get<String>('test');
+```
