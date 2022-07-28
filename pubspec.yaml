@@ -22,4 +22,4 @@ basil:
   tests:
     cmds: [ 'dart test' ]
   example:
-    cmds: [ 'bash -c "dart run example/yamlcfg_example.dart"' ]
+    cmds: [ 'dart run example/yamlcfg_example.dart' ]
