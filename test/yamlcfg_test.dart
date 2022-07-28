@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
+import 'package:yamlcfg/exceptions/missing_field_exception.dart';
 import 'package:yamlcfg/yamlcfg.dart';
 
 void main() {
@@ -9,14 +10,14 @@ void main() {
     test('Empty YAML string', () {
       expect(
         () => YamlCfg.fromString(''),
-        throwsArgumentError,
+        throwsFormatException,
       );
     });
 
     test('Non-yaml string', () {
       expect(
         () => YamlCfg.fromString('bad'),
-        throwsArgumentError,
+        throwsFormatException,
       );
     });
 
@@ -30,21 +31,21 @@ void main() {
     test('Missing field as int', () {
       expect(
         () => YamlCfg.fromString('val: 1').get<int>('nothing'),
-        throwsArgumentError,
+        throwsA(isA<MissingFieldException>()),
       );
     });
 
     test('Get field with wrong type', () {
       expect(
         () => YamlCfg.fromString('val: 1').get<String>('test'),
-        throwsArgumentError,
+        throwsA(isA<MissingFieldException>()),
       );
     });
 
     test('Missing field via into', () {
       expect(
         () => YamlCfg.fromString('val: 1').into('nothing'),
-        throwsArgumentError,
+        throwsA(isA<MissingFieldException>()),
       );
     });
   });

@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:yaml/yaml.dart';
+import 'package:yamlcfg/exceptions/missing_field_exception.dart';
+import 'package:yamlcfg/exceptions/type_mismatch_exception.dart';
 
 /// A type-safe configuration file parser with support for YAML notation.
 class YamlCfg {
@@ -9,7 +11,7 @@ class YamlCfg {
 
   /// Creates a new [YamlCfg] given some [content] data.
   ///
-  /// Throws an [ArgumentError] if:
+  /// Throws an [FormatException] if:
   ///   * [content] does not parse to a [YamlMap]
   ///   * [content] parses to null
   factory YamlCfg.fromString(String content) {
@@ -17,15 +19,12 @@ class YamlCfg {
 
     // Reject bad content.
     if (yamlMap is! YamlMap?) {
-      throw ArgumentError(
-        'Content contains invalid YAML',
-        'content',
-      );
+      throw FormatException('Content contains invalid YAML', content);
     }
 
     // Reject null maps.
     if (yamlMap == null) {
-      throw ArgumentError('Map must not be null', 'content');
+      throw FormatException('Map must not be null', content);
     }
 
     return YamlCfg(yamlMap);
@@ -57,9 +56,10 @@ class YamlCfg {
   /// If [T] is a [YamlCfg], then safely wrap the retrieved map as a new
   /// [YamlCfg] for further processing.
   ///
-  /// Throws an [ArgumentError] if:
-  ///   * Field is not a key in [yamlMap] and [onFallback] is null
-  ///   * Field value is not of type [T]
+  /// Throws a [MissingFieldException] if field is not a key in [yamlMap] and
+  /// [onFallback] is null.
+  ///
+  /// Throws an [TypeMismatchException] if field value is not of type [T]
   T get<T>(String name, [T Function()? onFallback]) {
     var fieldValue = yamlMap[name];
 
@@ -68,7 +68,10 @@ class YamlCfg {
       if (onFallback != null) {
         fieldValue = onFallback();
       } else {
-        throw ArgumentError('Missing field without fallback handler', name);
+        throw MissingFieldException(
+          field: name,
+          message: 'Missing field without fallback handler',
+        );
       }
     }
 
@@ -77,9 +80,10 @@ class YamlCfg {
 
     // Reject mismatching field types.
     if (fieldValue is! T) {
-      throw ArgumentError(
-        'Field type mismatch: $T != ${fieldValue.runtimeType}',
-        name,
+      throw TypeMismatchException(
+        field: name,
+        expected: T,
+        actual: fieldValue.runtimeType,
       );
     }
 
