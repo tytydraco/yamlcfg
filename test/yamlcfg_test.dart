@@ -87,6 +87,13 @@ void main() {
       );
     });
 
+    test('Get field as int by non-string key', () {
+      expect(
+        YamlCfg.fromString('null: 1').get<int>(null),
+        1,
+      );
+    });
+
     test('Get null field as int?', () {
       expect(
         YamlCfg.fromString('val: null').get<int?>('val'),

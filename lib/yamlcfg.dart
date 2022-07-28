@@ -50,7 +50,7 @@ class YamlCfg {
   @override
   String toString() => yamlMap.toString();
 
-  /// Retrieve a field of type [T] given a [name]. If it is missing, use the
+  /// Retrieve a field of type [T] given a [key]. If it is missing, use the
   /// result of the [onFallback] handler instead.
   ///
   /// If [T] is a [YamlCfg], then safely wrap the retrieved map as a new
@@ -60,16 +60,16 @@ class YamlCfg {
   /// [onFallback] is null.
   ///
   /// Throws an [TypeMismatchException] if field value is not of type [T].
-  T get<T>(String name, [T Function()? onFallback]) {
-    var fieldValue = yamlMap[name];
+  T get<T>(Object? key, [T Function()? onFallback]) {
+    var fieldValue = yamlMap[key];
 
     // Reject missing fields unless a handler was specified.
-    if (!yamlMap.containsKey(name)) {
+    if (!yamlMap.containsKey(key)) {
       if (onFallback != null) {
         fieldValue = onFallback();
       } else {
         throw MissingFieldException(
-          field: name,
+          field: key.toString(),
           message: 'Missing field without fallback handler',
         );
       }
@@ -83,7 +83,7 @@ class YamlCfg {
     // Reject mismatching field types.
     if (fieldValue is! T) {
       throw TypeMismatchException(
-        field: name,
+        field: key.toString(),
         expected: T,
         actual: fieldValue.runtimeType,
       );
@@ -92,10 +92,10 @@ class YamlCfg {
     return fieldValue;
   }
 
-  /// Wrap a [YamlMap] field with a [YamlCfg] given a [name]. If it is missing,
+  /// Wrap a [YamlMap] field with a [YamlCfg] given a [key]. If it is missing,
   /// use the result of the [onFallback] handler instead.
   ///
   /// Wrapper around [YamlCfg.get] with the assumed type of [YamlCfg].
-  YamlCfg into(String name, [YamlCfg Function()? onFallback]) =>
-      get<YamlCfg>(name, onFallback);
+  YamlCfg into(Object? key, [YamlCfg Function()? onFallback]) =>
+      get<YamlCfg>(key, onFallback);
 }
