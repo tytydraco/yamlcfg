@@ -1,6 +1,6 @@
 name: yamlcfg
 description: A type-safe configuration file parser with support for YAML notation.
-version: 1.0.1+1
+version: 1.0.2
 repository: https://www.github.com/tytydraco/yamlcfg
 
 environment:

@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
-import 'package:yamlcfg/exceptions/missing_field_exception.dart';
-import 'package:yamlcfg/exceptions/type_mismatch_exception.dart';
 import 'package:yamlcfg/yamlcfg.dart';
 
 void main() {
